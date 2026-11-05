@@ -137,7 +137,7 @@ async function draw(t) {
   path(); g.strokeStyle = "#0b2545"; g.lineWidth = 20; g.stroke();
   path(); g.strokeStyle = "#1f78d1"; g.lineWidth = 11; g.stroke();
   const dot = (p, c) => { const X = sx(mx(p[1])), Y = sy(my(p[0])); g.beginPath(); g.arc(X, Y, 19, 0, 7); g.fillStyle = "#fff"; g.fill(); g.beginPath(); g.arc(X, Y, 13, 0, 7); g.fillStyle = c; g.fill(); };
-  dot(t.route[0], "#2ebd59"); dot(t.route[t.route.length - 1], "#e53935");
+  dot(t.route[0], "#3a5a4f"); dot(t.route[t.route.length - 1], "#e53935");
   g.font = "22px -apple-system, Roboto, sans-serif"; g.textAlign = "right"; g.fillStyle = "rgba(255,255,255,0.85)";
   g.fillText("© OpenStreetMap contributors", W - 20, MAPH - 18);
 
