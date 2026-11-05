@@ -14,7 +14,7 @@
   #card { width: 100%; border-radius: 16px; display: block; background: #1b1d22; aspect-ratio: 4 / 5; }
   .row { display: flex; gap: 12px; margin-top: 14px; }
   button, a.btn { flex: 1; appearance: none; border: 0; border-radius: 14px; padding: 15px 10px; font: 600 17px/1 inherit; font-family: inherit; text-align: center; text-decoration: none; cursor: pointer; }
-  .primary { background: #1c6bff; color: #fff; }
+  .primary { background: #1f78d1; color: #fff; }
   .secondary { background: #2a2d34; color: #f2f3f5; }
   p.hint { color: #9aa0a8; font-size: 14px; margin: 12px 2px 0; }
   p.err { color: #ff8a80; }
@@ -135,7 +135,7 @@ async function draw(t) {
   g.lineCap = "round"; g.lineJoin = "round";
   const path = () => { g.beginPath(); t.route.forEach((p, i) => { const X = sx(mx(p[1])), Y = sy(my(p[0])); i ? g.lineTo(X, Y) : g.moveTo(X, Y); }); };
   path(); g.strokeStyle = "#0b2545"; g.lineWidth = 20; g.stroke();
-  path(); g.strokeStyle = "#ff6a1a"; g.lineWidth = 11; g.stroke();
+  path(); g.strokeStyle = "#1f78d1"; g.lineWidth = 11; g.stroke();
   const dot = (p, c) => { const X = sx(mx(p[1])), Y = sy(my(p[0])); g.beginPath(); g.arc(X, Y, 19, 0, 7); g.fillStyle = "#fff"; g.fill(); g.beginPath(); g.arc(X, Y, 13, 0, 7); g.fillStyle = c; g.fill(); };
   dot(t.route[0], "#2ebd59"); dot(t.route[t.route.length - 1], "#e53935");
   g.font = "22px -apple-system, Roboto, sans-serif"; g.textAlign = "right"; g.fillStyle = "rgba(255,255,255,0.85)";
@@ -171,7 +171,7 @@ async function draw(t) {
     let v = value; while (g.measureText(v).width > colW - 16 && v.length > 3) v = v.slice(0, -1);
     g.fillText(v, X, Y + 54);
   });
-  g.fillStyle = "#1c6bff"; g.font = "700 30px -apple-system, Roboto, sans-serif"; g.textAlign = "right";
+  g.fillStyle = "#1f78d1"; g.font = "700 30px -apple-system, Roboto, sans-serif"; g.textAlign = "right";
   g.fillText("ENGINE REV", W - 64, MAPH + 70);
   return { cv, missing };
 }
