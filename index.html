@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Engine Rev trip</title>
+<meta name="theme-color" content="#101114">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #101114; color: #f2f3f5; font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 20px; font-weight: 600; margin: 4px 0 14px; }
+  #card { width: 100%; border-radius: 16px; display: block; background: #1b1d22; aspect-ratio: 4 / 5; }
+  .row { display: flex; gap: 12px; margin-top: 14px; }
+  button, a.btn { flex: 1; appearance: none; border: 0; border-radius: 14px; padding: 15px 10px; font: 600 17px/1 inherit; font-family: inherit; text-align: center; text-decoration: none; cursor: pointer; }
+  .primary { background: #1c6bff; color: #fff; }
+  .secondary { background: #2a2d34; color: #f2f3f5; }
+  p.hint { color: #9aa0a8; font-size: 14px; margin: 12px 2px 0; }
+  p.err { color: #ff8a80; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Engine Rev trip</h1>
+  <img id="card" alt="Trip route card">
+  <div class="row">
+    <button id="share" class="primary" hidden>Share</button>
+    <a id="save" class="btn secondary" download="engine-rev-trip.png" hidden>Save image</a>
+  </div>
+  <p id="msg" class="hint">Drawing the map…</p>
+</main>
+<script>
+"use strict";
+// Link format (v1), all in the #fragment so nothing reaches a server:
+// #1.<route>.<startMs b36>.<km*10 b36>.<minutes b36>.<fuel L*100 b36|"">.<cost ฿*100 b36|"">.<places b64url UTF-8|"">
+// route: lat/lon ×1e5, first point then deltas, each zigzag varint in 5-bit groups, one base64url char per group (bit 5 = more).
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+function decodeRoute(s) {
+  const nums = [];
+  let v = 0, shift = 0;
+  for (const ch of s) {
+    const c = B64.indexOf(ch);
+    if (c < 0) throw new Error("bad route");
+    v += (c & 31) * Math.pow(2, shift);
+    if (c & 32) { shift += 5; continue; }
+    nums.push(v % 2 === 1 ? -(v + 1) / 2 : v / 2);
+    v = 0; shift = 0;
+  }
+  const pts = [];
+  let lat = 0, lon = 0;
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    lat += nums[i]; lon += nums[i + 1];
+    pts.push([lat / 1e5, lon / 1e5]);
+  }
+  return pts;
+}
+
+function b64urlText(s) {
+  if (!s) return "";
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4));
+  return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
+}
+
+function parse(hash) {
+  const f = hash.replace(/^#/, "").split(".");
+  if (f[0] !== "1" || f.length < 5) throw new Error("not a trip link");
+  const n = (x, k) => (x ? parseInt(x, 36) / k : null);
+  return {
+    route: decodeRoute(f[1]),
+    start: n(f[2], 1),
+    km: n(f[3], 10),
+    minutes: n(f[4], 1),
+    fuel: n(f[5], 100),
+    cost: n(f[6], 100),
+    places: b64urlText(f[7] || ""),
+  };
+}
+
+// Web Mercator, world = 1 unit.
+const mx = lon => (lon + 180) / 360;
+const my = lat => { const s = Math.sin(lat * Math.PI / 180); return 0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
+
+function loadTile(z, x, y) {
+  return new Promise(res => {
+    const n = 1 << z;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const t = setTimeout(() => res(null), 8000);
+    img.onload = () => { clearTimeout(t); res(img); };
+    img.onerror = () => { clearTimeout(t); res(null); };
+    img.src = `https://tile.openstreetmap.org/${z}/${((x % n) + n) % n}/${y}.png`;
+  });
+}
+
+function fmtTime(min) {
+  min = Math.round(min);
+  return min >= 60 ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min` : `${min} min`;
+}
+
+async function draw(t) {
+  const W = 1080, H = 1350, MAPH = 900, PAD = 90;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+  g.fillStyle = "#e8e4dc"; g.fillRect(0, 0, W, MAPH);
+
+  const xs = t.route.map(p => mx(p[1])), ys = t.route.map(p => my(p[0]));
+  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  // At least ~400 m across.
+  const minSpan = 400 / 40075016 / Math.cos(t.route[0][0] * Math.PI / 180);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const spanX = Math.max(x1 - x0, minSpan), spanY = Math.max(y1 - y0, minSpan);
+  const scale = Math.min((W - 2 * PAD) / spanX, (MAPH - 2 * PAD) / spanY); // px per world unit
+  const z = Math.max(2, Math.min(18, Math.floor(Math.log2(scale / 256))));
+  const n = 1 << z, ts = scale / n; // drawn tile size
+  const sx = x => W / 2 + (x - cx) * scale, sy = y => MAPH / 2 + (y - cy) * scale;
+  const tx0 = Math.floor((cx - W / 2 / scale) * n), tx1 = Math.floor((cx + W / 2 / scale) * n);
+  const ty0 = Math.max(0, Math.floor((cy - MAPH / 2 / scale) * n)), ty1 = Math.min(n - 1, Math.floor((cy + MAPH / 2 / scale) * n));
+  const jobs = [];
+  for (let x = tx0; x <= tx1; x++) for (let y = ty0; y <= ty1; y++) jobs.push(loadTile(z, x, y).then(img => ({ img, x, y })));
+  let missing = 0;
+  for (const { img, x, y } of await Promise.all(jobs)) {
+    if (!img) { missing++; continue; }
+    const l = Math.round(sx(x / n)), r = Math.round(sx((x + 1) / n)), tp = Math.round(sy(y / n)), b = Math.round(sy((y + 1) / n));
+    g.drawImage(img, l, tp, r - l, b - tp);
+  }
+  // Soft fade into the card at the map's foot.
+  const fade = g.createLinearGradient(0, MAPH - 140, 0, MAPH);
+  fade.addColorStop(0, "rgba(16,17,20,0)"); fade.addColorStop(1, "rgba(16,17,20,0.55)");
+  g.fillStyle = fade; g.fillRect(0, MAPH - 140, W, 140);
+
+  // Route: dark edge, then bright line.
+  g.lineCap = "round"; g.lineJoin = "round";
+  const path = () => { g.beginPath(); t.route.forEach((p, i) => { const X = sx(mx(p[1])), Y = sy(my(p[0])); i ? g.lineTo(X, Y) : g.moveTo(X, Y); }); };
+  path(); g.strokeStyle = "#0b2545"; g.lineWidth = 20; g.stroke();
+  path(); g.strokeStyle = "#ff6a1a"; g.lineWidth = 11; g.stroke();
+  const dot = (p, c) => { const X = sx(mx(p[1])), Y = sy(my(p[0])); g.beginPath(); g.arc(X, Y, 19, 0, 7); g.fillStyle = "#fff"; g.fill(); g.beginPath(); g.arc(X, Y, 13, 0, 7); g.fillStyle = c; g.fill(); };
+  dot(t.route[0], "#2ebd59"); dot(t.route[t.route.length - 1], "#e53935");
+  g.font = "22px -apple-system, Roboto, sans-serif"; g.textAlign = "right"; g.fillStyle = "rgba(255,255,255,0.85)";
+  g.fillText("© OpenStreetMap contributors", W - 20, MAPH - 18);
+
+  // Card.
+  g.fillStyle = "#101114"; g.fillRect(0, MAPH, W, H - MAPH);
+  g.textAlign = "left";
+  let y = MAPH + 70;
+  g.fillStyle = "#9aa0a8"; g.font = "500 32px -apple-system, Roboto, sans-serif";
+  if (t.start) g.fillText(new Date(t.start).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }), 64, y);
+  if (t.places) {
+    y += 58; g.fillStyle = "#f2f3f5"; g.font = "600 42px -apple-system, Roboto, sans-serif";
+    let s = t.places; while (g.measureText(s).width > W - 128 && s.length > 4) s = s.slice(0, -2);
+    g.fillText(s === t.places ? s : s + "…", 64, y);
+  }
+  const stats = [
+    ["Distance", t.km != null ? `${t.km.toFixed(1)} km` : "—"],
+    ["Time", t.minutes != null ? fmtTime(t.minutes) : "—"],
+    ["Avg speed", t.km && t.minutes ? `${Math.round(t.km / (t.minutes / 60))} km/h` : "—"],
+  ];
+  if (t.fuel != null) {
+    stats.push(["Fuel", `${t.fuel.toFixed(2)} L`]);
+    if (t.km > 1) stats.push(["L/100 km", (t.fuel / t.km * 100).toFixed(1)]);
+  }
+  if (t.cost != null) stats.push(["Cost", `฿${t.cost.toFixed(2)}`]);
+  const cols = 3, colW = (W - 128) / cols;
+  y += 80;
+  stats.forEach(([label, value], i) => {
+    const X = 64 + (i % cols) * colW, Y = y + Math.floor(i / cols) * 120;
+    g.fillStyle = "#9aa0a8"; g.font = "500 28px -apple-system, Roboto, sans-serif"; g.fillText(label, X, Y);
+    g.fillStyle = "#f2f3f5"; g.font = "700 44px -apple-system, Roboto, sans-serif";
+    let v = value; while (g.measureText(v).width > colW - 16 && v.length > 3) v = v.slice(0, -1);
+    g.fillText(v, X, Y + 54);
+  });
+  g.fillStyle = "#1c6bff"; g.font = "700 30px -apple-system, Roboto, sans-serif"; g.textAlign = "right";
+  g.fillText("ENGINE REV", W - 64, MAPH + 70);
+  return { cv, missing };
+}
+
+(async () => {
+  const msg = document.getElementById("msg");
+  let t;
+  try { t = parse(location.hash); if (t.route.length < 2) throw new Error("no route"); }
+  catch (e) { msg.textContent = "This link has no trip in it. Scan the QR on the car's Share screen."; msg.className = "hint err"; return; }
+  const { cv, missing } = await draw(t);
+  const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+  const url = URL.createObjectURL(blob);
+  document.getElementById("card").src = url;
+  const save = document.getElementById("save");
+  save.href = url; save.hidden = false;
+  const file = new File([blob], "engine-rev-trip.png", { type: "image/png" });
+  const share = document.getElementById("share");
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    share.hidden = false;
+    share.onclick = () => navigator.share({ files: [file], title: "Engine Rev trip" }).catch(() => {});
+  }
+  msg.textContent = (missing ? "Some map tiles didn't load. " : "") + "Tap Share, or press and hold the picture to save it.";
+})();
+</script>
+</body>
+</html>
