@@ -96,9 +96,13 @@ def us():
 
 
 def uk():
-    doc = json.loads(get(UK_API))
-    atts = [a for a in json.dumps(doc).split('"url": "')[1:]]
-    url = next(u.split('"')[0] for u in atts if u.split('"')[0].lower().endswith(".csv") and "2018" in u.split('"')[0])
+    found = []
+    for src in (UK_API, UK_API.replace("/api/content", "")):
+        try:
+            found += re.findall(r'https://assets\.publishing\.service\.gov\.uk/[^"\'\s<>\\]+?\.csv', get(src).decode("utf-8", "replace"))
+        except Exception as e:
+            print("UK", src, e)
+    url = next(u for u in found if "2018" in u)
     text = get(url).decode("utf-8-sig", "replace")
     rows = [r for r in csv.reader(io.StringIO(text)) if r]
     hi = next(i for i, r in enumerate(rows) if any("ULSP" in c for c in r) and any("ULSD" in c for c in r))
