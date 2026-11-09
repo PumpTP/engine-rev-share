@@ -1,0 +1,204 @@
+{
+ "v": 1,
+ "updated": "2026-11-09T07:12Z",
+ "unit": "per litre, local currency",
+ "countries": {
+  "AT": {
+   "cur": "EUR",
+   "petrol": 1.747,
+   "diesel": 2.148,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "BE": {
+   "cur": "EUR",
+   "petrol": 1.9144,
+   "diesel": 2.3978,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "BG": {
+   "cur": "EUR",
+   "petrol": 1.6045,
+   "diesel": 1.8927,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "CY": {
+   "cur": "EUR",
+   "petrol": 1.7156,
+   "diesel": 2.002,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "CZ": {
+   "cur": "CZK",
+   "petrol": 42.9812,
+   "diesel": 48.246,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "DE": {
+   "cur": "EUR",
+   "petrol": 2.128,
+   "diesel": 2.282,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "DK": {
+   "cur": "DKK",
+   "petrol": 18.6737,
+   "diesel": 18.9038,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "EE": {
+   "cur": "EUR",
+   "petrol": 1.863,
+   "diesel": 2.113,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "ES": {
+   "cur": "EUR",
+   "petrol": 1.7299,
+   "diesel": 1.8983,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "FI": {
+   "cur": "EUR",
+   "petrol": 2.205,
+   "diesel": 2.4326,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "FR": {
+   "cur": "EUR",
+   "petrol": 2.1581,
+   "diesel": 2.3706,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "GR": {
+   "cur": "EUR",
+   "petrol": 2.125,
+   "diesel": 2.139,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "HR": {
+   "cur": "EUR",
+   "petrol": 1.7488,
+   "diesel": 2.0146,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "HU": {
+   "cur": "HUF",
+   "petrol": 636.8272,
+   "diesel": 719.9314,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "IE": {
+   "cur": "EUR",
+   "petrol": 1.966,
+   "diesel": 2.122,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "IT": {
+   "cur": "EUR",
+   "petrol": 2.0006,
+   "diesel": 2.2384,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "LT": {
+   "cur": "EUR",
+   "petrol": 1.8697,
+   "diesel": 2.2231,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "LU": {
+   "cur": "EUR",
+   "petrol": 1.759,
+   "diesel": 2.11,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "LV": {
+   "cur": "EUR",
+   "petrol": 1.8676,
+   "diesel": 2.0987,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "MT": {
+   "cur": "EUR",
+   "petrol": 1.34,
+   "diesel": 1.21,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "NL": {
+   "cur": "EUR",
+   "petrol": 2.2843,
+   "diesel": 2.4676,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "PL": {
+   "cur": "PLN",
+   "petrol": 6.3939,
+   "diesel": 7.9591,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "PT": {
+   "cur": "EUR",
+   "petrol": 2.006,
+   "diesel": 2.205,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "RO": {
+   "cur": "RON",
+   "petrol": 10.0433,
+   "diesel": 11.0594,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "SE": {
+   "cur": "SEK",
+   "petrol": 17.1451,
+   "diesel": 22.7208,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "SI": {
+   "cur": "EUR",
+   "petrol": 1.6753,
+   "diesel": 1.9409,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "SK": {
+   "cur": "EUR",
+   "petrol": 1.785,
+   "diesel": 1.979,
+   "date": "2026-11-02",
+   "src": "EU Weekly Oil Bulletin"
+  },
+  "US": {
+   "cur": "USD",
+   "petrol": 1.0971,
+   "diesel": 1.6622,
+   "date": "2026-11-02",
+   "src": "US EIA"
+  }
+ },
+ "credits": "EU Weekly Oil Bulletin (European Commission, CC BY 4.0); US EIA; UK DESNZ (Open Government Licence v3.0)"
+}
