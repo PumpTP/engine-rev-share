@@ -33,7 +33,7 @@
 <script>
 "use strict";
 // Link format (v1), all in the #fragment so nothing reaches a server:
-// #1.<route>.<startMs b36>.<km*10 b36>.<minutes b36>.<fuel L*100 b36|"">.<cost ฿*100 b36|"">.<places b64url UTF-8|"">
+// #1.<route>.<startMs b36>.<km*10 b36>.<minutes b36>.<fuel L*100 b36|"">.<cost*100 b36|"">.<places b64url UTF-8|"">[.<currency ISO 4217, default THB>[.<"mi" = miles + mpg US, else km>]]
 // route: lat/lon ×1e5, first point then deltas, each zigzag varint in 5-bit groups, one base64url char per group (bit 5 = more).
 const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
@@ -75,6 +75,8 @@ function parse(hash) {
     fuel: n(f[5], 100),
     cost: n(f[6], 100),
     places: b64urlText(f[7] || ""),
+    currency: /^[A-Z]{3}$/.test(f[8] || "") ? f[8] : "THB",
+    miles: f[9] === "mi",
   };
 }
 
@@ -152,16 +154,23 @@ async function draw(t) {
     let s = t.places; while (g.measureText(s).width > W - 128 && s.length > 4) s = s.slice(0, -2);
     g.fillText(s === t.places ? s : s + "…", 64, y);
   }
+  const MI = 0.6213712, GAL = 0.2641720;
+  const dist = t.km != null ? (t.miles ? t.km * MI : t.km) : null, du = t.miles ? "mi" : "km";
   const stats = [
-    ["Distance", t.km != null ? `${t.km.toFixed(1)} km` : "—"],
+    ["Distance", dist != null ? `${dist.toFixed(1)} ${du}` : "—"],
     ["Time", t.minutes != null ? fmtTime(t.minutes) : "—"],
-    ["Avg speed", t.km && t.minutes ? `${Math.round(t.km / (t.minutes / 60))} km/h` : "—"],
+    ["Avg speed", dist && t.minutes ? `${Math.round(dist / (t.minutes / 60))} ${t.miles ? "mph" : "km/h"}` : "—"],
   ];
   if (t.fuel != null) {
-    stats.push(["Fuel", `${t.fuel.toFixed(2)} L`]);
-    if (t.km > 1) stats.push(["L/100 km", (t.fuel / t.km * 100).toFixed(1)]);
+    stats.push(["Fuel", t.miles ? `${(t.fuel * GAL).toFixed(2)} gal` : `${t.fuel.toFixed(2)} L`]);
+    if (t.km > 1 && t.fuel > 0) stats.push(t.miles ? ["MPG", (dist / (t.fuel * GAL)).toFixed(1)] : ["L/100 km", (t.fuel / t.km * 100).toFixed(1)]);
   }
-  if (t.cost != null) stats.push(["Cost", `฿${t.cost.toFixed(2)}`]);
+  if (t.cost != null) {
+    let c;
+    try { c = new Intl.NumberFormat(undefined, { style: "currency", currency: t.currency }).format(t.cost); }
+    catch (e) { c = `${t.currency} ${t.cost.toFixed(2)}`; }
+    stats.push(["Cost", c]);
+  }
   const cols = 3, colW = (W - 128) / cols;
   y += 80;
   stats.forEach(([label, value], i) => {

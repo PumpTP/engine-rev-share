@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "tiles": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "attribution": "© OpenStreetMap contributors",
+  "maxZoom": 19,
+  "reportUrl": "https://www.openstreetmap.org/fixthemap",
+  "places": "nominatim"
+}
