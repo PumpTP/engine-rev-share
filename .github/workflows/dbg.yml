@@ -1,0 +1,10 @@
+name: dbg
+on: workflow_dispatch
+jobs:
+  x:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sSL https://www.gov.uk/api/content/government/statistical-data-sets/oil-and-petroleum-products-weekly-statistics | grep -oE '"url":"[^"]+"|"url": "[^"]+"' | head -20
+          curl -sSL https://assets.publishing.service.gov.uk/media/6ae897f2f4a6b3f59cf37575/CSV__2018_-__.csv | head -5
+          curl -sSL https://assets.publishing.service.gov.uk/media/6ae897f2f4a6b3f59cf37575/CSV__2018_-__.csv | tail -3
