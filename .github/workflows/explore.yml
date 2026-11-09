@@ -1,0 +1,25 @@
+name: explore-price-files
+on: workflow_dispatch
+jobs:
+  x:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pip install openpyxl xlrd pandas
+      - run: |
+          curl -sSL -o wob.xlsx "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx" -D - | head -20
+          curl -sSL -o g.xls https://www.eia.gov/dnav/pet/hist_xls/EMM_EPMR_PTE_NUS_DPGw.xls -D - | head -5
+          curl -sSL -o d.xls https://www.eia.gov/dnav/pet/hist_xls/EMD_EPD2D_PTE_NUS_DPGw.xls -D - | head -5
+          ls -la
+          python - <<'PY'
+          import openpyxl, pandas as pd
+          wb = openpyxl.load_workbook("wob.xlsx", data_only=True)
+          for ws in wb.worksheets:
+              print("SHEET", ws.title, ws.max_row, ws.max_column)
+              for r in ws.iter_rows(min_row=1, max_row=40, values_only=True):
+                  print([c for c in r[:12]])
+          for f in ["g.xls","d.xls"]:
+              x = pd.ExcelFile(f)
+              print(f, x.sheet_names)
+              df = pd.read_excel(f, sheet_name=x.sheet_names[1], skiprows=2)
+              print(df.tail(3))
+          PY
