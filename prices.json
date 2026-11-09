@@ -1,6 +1,6 @@
 {
  "v": 1,
- "updated": "2026-11-09T07:12Z",
+ "updated": "2026-11-09T07:15Z",
  "unit": "per litre, local currency",
  "countries": {
   "AT": {
@@ -79,6 +79,13 @@
    "diesel": 2.3706,
    "date": "2026-11-02",
    "src": "EU Weekly Oil Bulletin"
+  },
+  "GB": {
+   "cur": "GBP",
+   "petrol": 1.7278,
+   "diesel": 1.9858,
+   "date": "2026-11-02",
+   "src": "UK DESNZ"
   },
   "GR": {
    "cur": "EUR",
