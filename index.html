@@ -84,6 +84,13 @@ function parse(hash) {
 const mx = lon => (lon + 180) / 360;
 const my = lat => { const s = Math.sin(lat * Math.PI / 180); return 0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
 
+// Map source from config.json (same file the apps read), so tiles can switch without an update.
+let MAP = { tiles: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", attribution: "© OpenStreetMap contributors" };
+const mapReady = fetch("config.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(c => {
+  if (c && /^https:\/\//.test(c.tiles || "") && ["{z}", "{x}", "{y}"].every(k => c.tiles.includes(k))) MAP.tiles = c.tiles;
+  if (c && typeof c.attribution === "string" && c.attribution) MAP.attribution = c.attribution;
+}).catch(() => {});
+
 function loadTile(z, x, y) {
   return new Promise(res => {
     const n = 1 << z;
@@ -92,7 +99,7 @@ function loadTile(z, x, y) {
     const t = setTimeout(() => res(null), 8000);
     img.onload = () => { clearTimeout(t); res(img); };
     img.onerror = () => { clearTimeout(t); res(null); };
-    img.src = `https://tile.openstreetmap.org/${z}/${((x % n) + n) % n}/${y}.png`;
+    img.src = MAP.tiles.replace("{z}", z).replace("{x}", ((x % n) + n) % n).replace("{y}", y);
   });
 }
 
@@ -102,6 +109,7 @@ function fmtTime(min) {
 }
 
 async function draw(t) {
+  await mapReady;
   const W = 1080, H = 1350, MAPH = 900, PAD = 90;
   const cv = document.createElement("canvas");
   cv.width = W; cv.height = H;
@@ -141,7 +149,7 @@ async function draw(t) {
   const dot = (p, c) => { const X = sx(mx(p[1])), Y = sy(my(p[0])); g.beginPath(); g.arc(X, Y, 19, 0, 7); g.fillStyle = "#fff"; g.fill(); g.beginPath(); g.arc(X, Y, 13, 0, 7); g.fillStyle = c; g.fill(); };
   dot(t.route[0], "#1f78d1"); dot(t.route[t.route.length - 1], "#3a5a4f");
   g.font = "22px -apple-system, Roboto, sans-serif"; g.textAlign = "right"; g.fillStyle = "rgba(255,255,255,0.85)";
-  g.fillText("© OpenStreetMap contributors", W - 20, MAPH - 18);
+  g.fillText(MAP.attribution, W - 20, MAPH - 18);
 
   // Card.
   g.fillStyle = "#101114"; g.fillRect(0, MAPH, W, H - MAPH);
