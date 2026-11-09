@@ -1,0 +1,19 @@
+name: fuel-prices
+on:
+  schedule:
+    - cron: "30 6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install openpyxl xlrd pandas
+      - run: python tools/build_prices.py prices.json && head -40 prices.json
+      - run: |
+          git config user.name "fuel-prices bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add prices.json
+          git diff --cached --quiet || (git commit -m "Fuel prices $(date -u +%F)" && git push)
